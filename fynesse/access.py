@@ -1,5 +1,5 @@
 import csv
-
+import pymysql
 import requests
 
 """These are the types of import we might expect in this file
@@ -78,3 +78,32 @@ def housing_upload_join_data(conn, year):
     cur.execute(
         f"LOAD DATA LOCAL INFILE '" + csv_file_path + "' INTO TABLE `prices_coordinates_data` FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED by '\"' LINES STARTING BY '' TERMINATED BY '\n';")
     print('Data stored for year: ' + str(year))
+
+def create_connection(user, password, host, database, port=3306):
+    """ Create a database connection to the MariaDB database
+        specified by the host url and database name.
+    :param user: username
+    :param password: password
+    :param host: host url
+    :param database: database name
+    :param port: port number
+    :return: Connection object or None
+    """
+    conn = None
+    try:
+        conn = pymysql.connect(user=user,
+                               passwd=password,
+                               host=host,
+                               port=port,
+                               local_infile=1,
+                               db=database
+                               )
+        print(f"Connection established!")
+    except Exception as e:
+        print(f"Error connecting to the MariaDB Server: {e}")
+    return conn
+
+def sql_select(conn, sql):
+    cur = conn.cursor()
+    cur.execute(sql)
+    return cur.fetchall()

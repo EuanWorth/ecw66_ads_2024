@@ -1,0 +1,7 @@
+pandas
+numpy
+jupyter
+matplotlib
+
+[interactive html plots]
+bokeh
