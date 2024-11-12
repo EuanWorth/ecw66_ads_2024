@@ -43,31 +43,7 @@ def display_heatmap(df, title):
     plt.title(title, fontsize=16)
     plt.show()
 
-def calc_degrees_per_km(latitude):
-  rad = 6371
-  local_rad = rad * math.cos ( math.radians(latitude) )
-  local_degrees_per_hkm = 360/(2*math.pi*local_rad)
-  degrees_per_vkm = 360/(2*math.pi*rad)
-  return (degrees_per_vkm, local_degrees_per_hkm)
 
-def gen_gdf(latitude, longitude, conn):
-  (degrees_per_vkm, local_degrees_per_hkm) = calc_degrees_per_km(latitude)
-  rows = access.sql_select(conn, f'SELECT pp.price, pp.date_of_transfer, po.postcode, po.latitude, po.longitude, pp.property_type, pp.primary_addressable_object_name, pp.secondary_addressable_object_name, pp.street FROM pp_data AS pp INNER JOIN postcode_data AS po ON pp.postcode = po.postcode WHERE Latitude >= {latitude - (degrees_per_vkm * 1)} AND Latitude <= {latitude + (degrees_per_vkm * 1)} AND Longitude >= {longitude - (local_degrees_per_hkm * 1)} AND Longitude <= {longitude + (local_degrees_per_hkm * 1)} AND date_of_transfer >= "2020-01-01" AND NOT (pp.property_type = \'F\')')
-  # print(rows)
-  df = pd.DataFrame(rows, columns=["Price", "Date of Transfer", "Postcode", "Latitude", "Longitude", "Type", "House Number", "Secondary Addressable Object Name", "Street"])
-  gdf = gpd.GeoDataFrame(
-      df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude), crs="EPSG:4326"
-  )
-  return gdf
-
-def get_buildings(latitude, longitude):
-  (degrees_per_vkm, local_degrees_per_hkm) = calc_degrees_per_km(latitude)
-  north = latitude + (degrees_per_vkm * 1)
-  south = latitude - (degrees_per_vkm * 1)
-  east = longitude + (local_degrees_per_hkm * 1)
-  west = longitude - (local_degrees_per_hkm * 1)
-  buildings = ox.features_from_bbox(north = north, south = south, west= west, east = east, tags={'building': True})
-  return buildings
 
 def display_price_graphs(gdf, place_name):
   _, ax = plt.subplots()
@@ -81,8 +57,8 @@ def display_price_graphs(gdf, place_name):
   display_heatmap(small_df.corr(), f'Correlation Matrix for Latitude and Longitude against prices in {place_name}')
 
 def do_analysis(latitude, longitude, place_name, conn):
-  pp_gdf = gen_gdf(latitude, longitude, conn)
-  osm_gdf=get_buildings(latitude, longitude)
+  pp_gdf = access.gen_gdf(latitude, longitude, conn)
+  osm_gdf= access.get_buildings(latitude, longitude)
   osm_gdf['Street'] = osm_gdf['addr:street'].apply(lambda x : str.upper(str(x)))
   join_df = pd.merge(pp_gdf, osm_gdf, left_on=['House Number', "Street"], right_on=['addr:housenumber', 'Street'], how='inner')
   join_gdf = join_df.set_geometry("geometry_y")
