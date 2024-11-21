@@ -6,6 +6,9 @@ import math
 import pandas as pd
 import geopandas as gpd
 import osmnx as ox
+import zipfile
+import io
+import os
 
 """These are the types of import we might expect in this file
 import httplib2
@@ -161,3 +164,23 @@ def get_buildings(latitude, longitude):
   west = longitude - (local_degrees_per_hkm * 1)
   buildings = ox.features_from_bbox(north = north, south = south, west= west, east = east, tags={'building': True})
   return buildings
+
+def download_census_data(code, base_dir=''):
+  url = f'https://www.nomisweb.co.uk/output/census/2021/census2021-{code.lower()}.zip'
+  extract_dir = os.path.join(base_dir, os.path.splitext(os.path.basename(url))[0])
+
+  if os.path.exists(extract_dir) and os.listdir(extract_dir):
+    print(f"Files already exist at: {extract_dir}.")
+    return
+
+  os.makedirs(extract_dir, exist_ok=True)
+  response = requests.get(url)
+  response.raise_for_status()
+
+  with zipfile.ZipFile(io.BytesIO(response.content)) as zip_ref:
+    zip_ref.extractall(extract_dir)
+
+  print(f"Files extracted to: {extract_dir}")
+
+def load_census_data(code, level='msoa'):
+  return pd.read_csv(f'census2021-{code.lower()}/census2021-{code.lower()}-{level}.csv')
