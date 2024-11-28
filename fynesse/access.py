@@ -9,6 +9,8 @@ import osmnx as ox
 import zipfile
 import io
 import os
+import yaml
+from ipywidgets import interact_manual, Text, Password
 
 """These are the types of import we might expect in this file
 import httplib2
@@ -184,3 +186,24 @@ def download_census_data(code, base_dir=''):
 
 def load_census_data(code, level='msoa'):
   return pd.read_csv(f'census2021-{code.lower()}/census2021-{code.lower()}-{level}.csv')
+
+def create_db_connections(credentials):
+   # dfd
+    raise NotImplemented
+
+
+@interact_manual(username=Text(description="Username:"),
+            password=Password(description="Password:"),
+            url=Text(description="URL:"),
+            port=Text(description="Port:"))
+def write_credentials(username, password, url, port):
+    with open("credentials.yaml", "w") as file:
+        credentials_dict = {'username': username,
+                        'password': password,
+                        'url': url,
+                        'port': port}
+        yaml.dump(credentials_dict, file)
+
+def load_credentials():
+    with open("credentials.yaml") as file:
+        return yaml.safe_load(file)
