@@ -192,17 +192,18 @@ def create_db_connections(credentials):
     raise NotImplemented
 
 
-@interact_manual(username=Text(description="Username:"),
-            password=Password(description="Password:"),
-            url=Text(description="URL:"),
-            port=Text(description="Port:"))
-def write_credentials(username, password, url, port):
-    with open("credentials.yaml", "w") as file:
-        credentials_dict = {'username': username,
-                        'password': password,
-                        'url': url,
-                        'port': port}
-        yaml.dump(credentials_dict, file)
+def store_credentials():
+    @interact_manual(username=Text(description="Username:"),
+                password=Password(description="Password:"),
+                url=Text(description="URL:"),
+                port=Text(description="Port:"))
+    def write_credentials(username, password, url, port):
+        with open("credentials.yaml", "w") as file:
+            credentials_dict = {'username': username,
+                            'password': password,
+                            'url': url,
+                            'port': port}
+            yaml.dump(credentials_dict, file)
 
 def load_credentials():
     with open("credentials.yaml") as file:
