@@ -187,11 +187,6 @@ def download_census_data(code, base_dir=''):
 def load_census_data(code, level='msoa'):
   return pd.read_csv(f'census2021-{code.lower()}/census2021-{code.lower()}-{level}.csv')
 
-def create_db_connections(credentials):
-   # dfd
-    raise NotImplemented
-
-
 def store_credentials():
     @interact_manual(username=Text(description="Username:"),
                 password=Password(description="Password:"),
@@ -208,3 +203,12 @@ def store_credentials():
 def load_credentials():
     with open("credentials.yaml") as file:
         return yaml.safe_load(file)
+    
+
+def count_pois(poi_df, poi_types = ["amenity", "historic", "leisure", "shop", "tourism", "religion", "memorial"]):
+    poi_counts = {}
+    for tag in poi_types:
+      if tag in poi_df.columns:
+        poi_counts[tag] = poi_df[tag].notnull().sum()
+      else:
+        poi_counts[tag] = 0
