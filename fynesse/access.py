@@ -210,14 +210,12 @@ def count_pois(poi_df, poi_types = ["amenity", "historic", "leisure", "shop", "t
     poi_counts = {}
     for tag in poi_types:
         if type(tag) == str:
-            print("str", tag)
             if tag in poi_df.columns:
                 poi_counts[tag] = poi_df[tag].notnull().sum()
             else:
                 poi_counts[tag] = 0
         else:
             tag, value = tag
-            print("tuple", tag, value)
             if tag in poi_df.columns:
                 poi_counts[value] = poi_df[tag][poi_df[tag] == value].count()
             else:
