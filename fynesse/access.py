@@ -10,6 +10,7 @@ import zipfile
 import io
 import os
 import yaml
+import types
 from ipywidgets import interact_manual, Text, Password
 
 """These are the types of import we might expect in this file
@@ -208,8 +209,15 @@ def load_credentials():
 def count_pois(poi_df, poi_types = ["amenity", "historic", "leisure", "shop", "tourism", "religion", "memorial"]):
     poi_counts = {}
     for tag in poi_types:
-      if tag in poi_df.columns:
-        poi_counts[tag] = poi_df[tag].notnull().sum()
-      else:
-        poi_counts[tag] = 0
+        if type(tag) == str:
+            if tag in poi_df.columns:
+                poi_counts[tag] = poi_df[tag].notnull().sum()
+            else:
+                poi_counts[tag] = 0
+        else:
+            tag, value = tag
+            if tag in poi_df.columns:
+                poi_counts[tag] = poi_df[tag][poi_df[tag] == value].sum()
+            else:
+                poi_counts[tag] = 0
     return poi_counts
