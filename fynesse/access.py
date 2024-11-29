@@ -212,3 +212,4 @@ def count_pois(poi_df, poi_types = ["amenity", "historic", "leisure", "shop", "t
         poi_counts[tag] = poi_df[tag].notnull().sum()
       else:
         poi_counts[tag] = 0
+    return poi_counts
