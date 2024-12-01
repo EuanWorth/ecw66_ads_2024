@@ -45,12 +45,15 @@ def display_heatmap(df, title, ax=None):
       plt.xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=90)
       plt.yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
       plt.title(title, fontsize=16)
+      plt.colorbar()
       plt.show()
     else:
       ax.matshow(df)
       ax.set_xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=90)
       ax.set_yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
       ax.set_title(title, fontsize=16)
+      plt.colorbar(ax=ax)
+      
 
 
 
