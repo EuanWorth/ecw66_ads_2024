@@ -51,7 +51,7 @@ def display_heatmap(df, title, ax=None, use_rows=False):
       im = ax.imshow(df)
       ax.set_xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=90)
       if use_rows:
-         ax.set_yticks(df.index)
+         ax.set_yticks(list(df.index))
       else:
         ax.set_yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
       ax.set_title(title, fontsize=16)
