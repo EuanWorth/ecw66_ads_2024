@@ -39,7 +39,7 @@ def labelled(data):
     """Provide a labelled set of data ready for supervised learning."""
     raise NotImplementedError
 
-def display_heatmap(df, title, ax=None):
+def display_heatmap(df, title, ax=None, use_rows=False):
     if ax == None:
       plt.matshow(df)
       plt.xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=90)
@@ -50,7 +50,10 @@ def display_heatmap(df, title, ax=None):
     else:
       im = ax.imshow(df)
       ax.set_xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=90)
-      ax.set_yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
+      if use_rows:
+         ax.set_yticks(df.index)
+      else:
+        ax.set_yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
       ax.set_title(title, fontsize=16)
       plt.colorbar(im, ax=ax)
       
