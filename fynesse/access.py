@@ -10,7 +10,7 @@ import zipfile
 import io
 import os
 import yaml
-import types
+import shapely
 from ipywidgets import interact_manual, Text, Password
 
 """These are the types of import we might expect in this file
@@ -221,3 +221,24 @@ def count_pois(poi_df, poi_types = ["amenity", "historic", "leisure", "shop", "t
             else:
                 poi_counts[value] = 0
     return poi_counts
+
+def find_nearest_oa(conn, latitude: float, longitude: float) -> str:
+    """
+    Args:
+    conn: The SQL Connection
+    latitude (float): The latitude coordinate.
+    longitude (float): The longitude coordinate.
+
+    Returns:
+    str: The oa21cd of the nearest OA.
+    """
+    degrees_per_vkm, degrees_per_hkm = calc_degrees_per_km(latitude)
+    sql_query = f"SELECT oa21cd, geometry FROM `oa_geo_data` WHERE - {5 * degrees_per_vkm} < (latitude - {latitude}) AND {5 * degrees_per_vkm} > (latitude - {latitude}) AND - {5 * degrees_per_hkm} < (longitude - {longitude}) AND {5 * degrees_per_hkm} > (longitude - {longitude});"
+    nearby_oas = sql_select(conn, sql_query)
+    nearby_oas_df = pd.DataFrame(nearby_oas, columns=["oa21cd", "geometry"])
+    nearby_oas_df["geometry"] = gpd.GeoSeries.from_wkt(nearby_oas_df['geometry'])
+    nearby_oas_gdf = gpd.GeoDataFrame(nearby_oas_df, geometry="geometry")
+    for _, row in nearby_oas_gdf.iterrows():
+      if row["geometry"].contains(shapely.geometry.Point(longitude, latitude)):
+        return row["oa21cd"]
+    return nearby_oas_gdf.iloc[0]["oa21cd"]
