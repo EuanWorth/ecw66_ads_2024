@@ -42,8 +42,11 @@ def labelled(data):
 def display_heatmap(df, title, ax=None, use_rows=False):
     if ax == None:
       plt.matshow(df)
+      if use_rows:
+         plt.yticks(np.arange(len(df.index)), list(df.index), fontsize=14)
+      else:
+        plt.yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
       plt.xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=90)
-      plt.yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
       plt.title(title, fontsize=16)
       plt.colorbar()
       plt.show()
