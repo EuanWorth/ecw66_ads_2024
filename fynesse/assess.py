@@ -159,7 +159,6 @@ def process_t1_sample(sample):
     sample_df = pd.DataFrame(sample)
     for size in access.size_list:
         sample_df.drop(f"{size}_church", axis=1)
-    column_list.remove("church")
     sample_df["Average_deprivation"] = (
         sample_df["1_deprivation"]
         + 2 * sample_df["2_deprivation"]
