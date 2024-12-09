@@ -152,3 +152,20 @@ JOIN `ts062_data` ON `ts062_data`.`geography_code` = `oa_geo_data`.`oa21cd`
 JOIN `ts011_data` ON `ts062_data`.`geography_code` = `ts011_data`.`geography_code`
 ORDER BY RAND() LIMIT 2500;
 """
+
+def process_t1_sample(random_sample):
+  column_list = access.column_list
+  sample_df = pd.DataFrame(random_sample)
+  for size in access.size_list:
+    sample_df.drop(f"{size}_church", axis=1)
+  column_list.remove("church")
+  sample_df["Average_deprivation"] = (sample_df["1_deprivation"] + 2 * sample_df["2_deprivation"] + 3 * sample_df["3_deprivation"] + 4 * sample_df["4_deprivation"]) / sample_df["total_households"]
+  sample_df["Percentage_of_students"] = sample_df["number_of_students"] / sample_df["Total_all_usual_residents"]
+  norm_df = sample_df.copy()
+  log_df = sample_df.copy()
+  for size in access.size_list:
+    sized_column_names = list(map(lambda column: f"{size}_{column}", column_list))
+    sums = sample_df[sized_column_names].sum(axis=1)
+    norm_df[sized_column_names] = sample_df[sized_column_names].div(sums, axis=0)
+    log_df[sized_column_names]  = sample_df[sized_column_names].apply(lambda column: np.log10(column + 1))
+  return {"true": sample_df, "normalised": norm_df, "log": log_df}
