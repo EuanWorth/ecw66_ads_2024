@@ -14,28 +14,48 @@ import shapely
 import pyproj
 from ipywidgets import interact_manual, Text, Password
 
-"""These are the types of import we might expect in this file
-import httplib2
-import oauth2
-import tables
-import mongodb
-import sqlite"""
-
-# This file accesses the data
-
 """Place commands in this file to access the data electronically. Don't remove any missing values, or deal with 
 outliers. Make sure you have legalities correct, both intellectual property and personal data privacy rights. Beyond 
 the legal side also think about the ethical issues around this data. """
 
+feature_list = [
+    "historic",
+  ("amenity", "bar"),
+  ("amenity", "cafe"),
+  ("amenity", "restaurant"),
+  ("amenity", "college"),
+  ("amenity", "library"),
+  ("amenity", "school"),
+  ("amenity", "university"),
+  ("amenity", "fuel"),
+  ("amenity", "bank"),
+  ("amenity", "doctors"),
+  ("amenity", "hospital"),
+  ("building", "church"),
+  ("building", "mosque"),
+  ("building", "synagogue"),
+  "leisure",
+  ("shop", "supermarket"),
+  ("shop", "convenience"),
+  ("shop", "department_store"),
+  ("shop", "clothes"),
+  ("shop", "charity"),
+  ("shop", "books"),
+  "sport"
+]
 
-def data():
-    """Read the data from the web or local file, returning structured format such as a data frame"""
-    raise NotImplementedError
+tags = {
+    "amenity": ["bar", "cafe", "restaurant", "college", "library", "school", "university", "fuel", "bank", "doctors", "hospital"],
+    "building": ["church", "mosque", "synagogue"],
+    "historic": True,
+    "leisure": True,
+    "shop": ["supermarket", "convenience", "department_store", "clothes", "charity", "books"],
+    "sport": True
+}
 
-
-def hello_world():
-    print("Hello from the data science library!")
-
+fetch_radius = 15
+small_search_radius = 1
+large_search_radius = 5
 
 def download_price_paid_data(year_from, year_to):
     # Base URL where the dataset is stored
@@ -253,3 +273,8 @@ def tabulate_geographies(input_file, output_file):
         return shapely.ops.transform(project.transform, polygon)
     oa_gdf['geometry'] = oa_gdf['geometry'].apply(transform)
     oa_gdf.to_csv(output_file, index=False)
+
+def get_oa_list(conn):
+    oa_list = pd.DataFrame(sql_select(conn, "SELECT oa21cd FROM oa_geo_data;"), columns=["oa21cd"])
+    oa_list.sort_values("oa21cd", inplace=True)
+    return oa_list
