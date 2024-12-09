@@ -153,9 +153,9 @@ JOIN `ts011_data` ON `ts062_data`.`geography_code` = `ts011_data`.`geography_cod
 ORDER BY RAND() LIMIT 2500;
 """
 
-def process_t1_sample(random_sample):
+def process_t1_sample(sample):
   column_list = access.column_list
-  sample_df = pd.DataFrame(random_sample)
+  sample_df = pd.DataFrame(sample)
   for size in access.size_list:
     sample_df.drop(f"{size}_church", axis=1)
   column_list.remove("church")

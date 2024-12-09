@@ -83,6 +83,7 @@ def gen_column_list():
             column_list.append(feature[1])
         else:
             column_list.append(feature)
+    return column_list
 
 
 column_list = gen_column_list()
