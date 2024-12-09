@@ -11,6 +11,7 @@ import io
 import os
 import yaml
 import shapely
+import pyproj
 from ipywidgets import interact_manual, Text, Password
 
 """These are the types of import we might expect in this file
@@ -242,3 +243,13 @@ def find_nearest_oa(conn, latitude: float, longitude: float) -> str:
       if row["geometry"].contains(shapely.geometry.Point(longitude, latitude)):
         return row["oa21cd"]
     return nearby_oas_gdf.iloc[0]["oa21cd"]
+
+def tabulate_geographies(input_file, output_file):
+    oa_gdf = gpd.read_file(input_file)
+    bgn = pyproj.Proj(init='epsg:27700')
+    new_proj = pyproj.Proj(init='epsg:4326')
+    project = pyproj.Transformer.from_proj(bgn, new_proj)
+    def transform(polygon):
+        return shapely.ops.transform(project.transform, polygon)
+    oa_gdf['geometry'] = oa_gdf['geometry'].apply(transform)
+    oa_gdf.to_csv(output_file, index=False)
