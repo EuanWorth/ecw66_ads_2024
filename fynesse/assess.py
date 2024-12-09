@@ -81,3 +81,30 @@ def do_analysis(latitude, longitude, place_name, conn):
   join_df = pd.merge(pp_gdf, osm_gdf, left_on=['House Number', "Street"], right_on=['addr:housenumber', 'Street'], how='inner')
   join_gdf = join_df.set_geometry("geometry_y")
   display_price_graphs(join_gdf, place_name)
+
+def display_osm_aggregate_summaries(conn):
+  fig, axes = plt.subplots(nrows = len(access.feature_list), ncols=3, figsize=(15, 100))
+  for feature, ax in zip(access.feature_list, axes):
+    if isinstance(feature, tuple):
+      feature_type, feature_name = feature
+    else:
+      feature_name = feature
+      feature_type = None
+    exact_data = access.sql_select(conn, f"SELECT COUNT(*) FROM polygon_counts GROUP BY {feature_name};")
+    small_data = access.sql_select(conn, f"SELECT COUNT(*) FROM small_radius_counts GROUP BY {feature_name};")
+    large_data = access.sql_select(conn, f"SELECT COUNT(*) FROM large_radius_counts GROUP BY {feature_name};")
+    exact_df = pd.DataFrame(exact_data, columns=["count"])
+    small_df = pd.DataFrame(small_data, columns=["count"])
+    large_df = pd.DataFrame(large_data, columns=["count"])
+    ax[0].bar(exact_df.index, np.log10(exact_df["count"]))
+    ax[1].bar(small_df.index, np.log10(small_df["count"]))
+    ax[2].bar(large_df.index, np.log10(large_df["count"]))
+    if feature_type == "shop":
+      ax[0].set_title(f"Log count of {feature_name} shops in oa")
+      ax[1].set_title(f"Log count of {feature_name} shops in {access.small_search_radius}km radius")
+      ax[2].set_title(f"Log count of {feature_name} shops in {access.large_search_radius}km radius")
+    else:
+      ax[0].set_title(f"Log count of {feature_name}s in oa")
+      ax[1].set_title(f"Log count of {feature_name}s in {access.small_search_radius}km radius")
+      ax[2].set_title(f"Log count of {feature_name}s in {access.large_search_radius}km radius")
+  plt.tight_layout()
