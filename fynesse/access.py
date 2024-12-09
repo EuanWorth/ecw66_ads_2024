@@ -83,10 +83,12 @@ def gen_column_list():
             column_list.append(feature[1])
         else:
             column_list.append(feature)
+    column_list.remove("church")
     return column_list
 
 
 column_list = gen_column_list()
+
 size_list = ["exact", "small", "large"]
 
 
