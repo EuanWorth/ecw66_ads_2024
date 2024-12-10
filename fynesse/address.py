@@ -74,6 +74,31 @@ JOIN `ts062_data` ON `ts062_data`.`geography_code` = `polygon_counts`.`oa21cd`
 """
 
 
+deprivation_sql_query = f"""
+SELECT
+large_radius_counts.oa21cd AS oa21cd,
+large_radius_counts.fuel AS large_fuel,
+polygon_counts.sport AS exact_sport,
+large_radius_counts.sport AS large_sport,
+small_radius_counts.school AS small_school,
+small_radius_counts.historic AS small_historic,
+small_radius_counts.restaurant AS small_restaurant,
+small_radius_counts.convenience AS small_convenience,
+large_radius_counts.university AS large_university,
+polygon_counts.books AS exact_books,
+small_radius_counts.bank AS small_bank,
+polygon_counts.cafe AS exact_cafe,
+polygon_counts.university AS exact_university,
+{small_sum} AS small_sum,
+{large_sum} AS large_sum,
+(ts011_data.1_deprivation + 2 * ts011_data.2_deprivation + 3 * ts011_data.3_deprivation + 4 * ts011_data.4_deprivation) / ts011_data.total_households AS average_deprivation
+FROM `polygon_counts`
+JOIN `small_radius_counts` ON `polygon_counts`.`oa21cd` = `small_radius_counts`.`oa21cd`
+JOIN `large_radius_counts` ON `polygon_counts`.`oa21cd` = `large_radius_counts`.`oa21cd`
+JOIN `ts011_data` ON `ts011_data`.`geography_code` = `polygon_counts`.`oa21cd`
+"""
+
+
 def process_student_data(student_data):
     student_df = pd.DataFrame(student_data)
     student_df["large_sum"][student_df["large_sum"] == 0] = 1
