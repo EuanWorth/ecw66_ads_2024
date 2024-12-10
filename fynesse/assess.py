@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math
 import pandas as pd
 import numpy as np
-
+import statsmodels.api as sm
 
 def display_heatmap(df, title, ax=None, use_rows=False):
     if ax is None:
@@ -224,18 +224,58 @@ def display_feature_correlations(dfs, response_vectors):
                 use_rows=True,
             )
 
+
 def display_response_vector_histogram(response_vectors):
     nrows = len(response_vectors)
-    fig, axs = plt.subplots(nrows=nrows, figsize=(10, nrows*10))
-    for (response_vector_name, response_vector), ax in zip(response_vectors.items(), axs):
+    fig, axs = plt.subplots(nrows=nrows, figsize=(10, nrows * 10))
+    for (response_vector_name, response_vector), ax in zip(
+        response_vectors.items(), axs
+    ):
         max = response_vector.max()
         ax.hist(response_vector, bins=np.arange(0, max, max / 100))
         ax.set_title(f"Distribution of {response_vector_name} across output areas")
-    
+
+
 def display_t1_features_vector_summaries(conn):
-    deprivation_data = access.sql_select(conn, "SELECT (1_deprivation + 2 * 2_deprivation + 3 * 3_deprivation + 4 * 4_deprivation) / total_households AS average_deprivation FROM `ts011_data`")
+    deprivation_data = access.sql_select(
+        conn,
+        "SELECT (1_deprivation + 2 * 2_deprivation + 3 * 3_deprivation + 4 * 4_deprivation) / total_households AS average_deprivation FROM `ts011_data`",
+    )
     deprivation_df = pd.DataFrame(deprivation_data, columns=["Average Deprivation"])
-    students_data = access.sql_select(conn, "SELECT l15 / total_all_usual_residents AS 'Percentage_of_students' FROM `ts062_data`")
+    students_data = access.sql_select(
+        conn,
+        "SELECT l15 / total_all_usual_residents AS 'Percentage_of_students' FROM `ts062_data`",
+    )
     students_df = pd.DataFrame(students_data, columns=["Percentage of Students"])
-    response_vectors = {"Percentage of Students": students_df["Percentage of Students"], "Average Deprivation": deprivation_df["Average Deprivation"]}
+    response_vectors = {
+        "Percentage of Students": students_df["Percentage of Students"],
+        "Average Deprivation": deprivation_df["Average Deprivation"],
+    }
     display_response_vector_histogram(response_vectors)
+
+
+def fit_exploratory_models(dfs, response_vectors):
+    for response_vector_name, response_vector in response_vectors.items():
+        for size in access.size_list:
+          sized_column_names = list(map(lambda column: f"{size}_{column}", access.column_list))
+          for name, df in dfs.items():
+            design_matrix = df.dropna(subset=sized_column_names)
+            model = sm.OLS(response_vector, sm.add_constant(design_matrix[sized_column_names]))
+            results = model.fit()
+            title = f"Model for {response_vector_name} against size {size} on {name} osm data"
+            under_line = "=" * len(title)
+            print(title)
+            print(under_line)
+            print(results.summary(), "\n\n\n\n\n")
+        sized_column_names = []
+        for column in access.column_list:
+          sized_column_names += list(map(lambda size: f"{size}_{column}", access.size_list))
+        for name, df in dfs.items():
+          design_matrix = df.dropna(subset=sized_column_names)
+          model = sm.OLS(response_vector, sm.add_constant(design_matrix[sized_column_names]))
+          results = model.fit()
+          title = f"Model for {response_vector_name} against all sizes on {name} osm_data"
+          under_line = "=" * len(title)
+          print(title)
+          print(under_line)
+          print(results.summary(), "\n\n\n\n\n")
