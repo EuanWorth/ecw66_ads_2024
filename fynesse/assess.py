@@ -226,7 +226,7 @@ def display_feature_correlations(dfs, response_vectors):
 
 def display_response_vector_histogram(response_vectors):
     nrows = len(response_vectors)
-    fig, axs = plt.subplots(nrows=nrows, figsize=(10*nrows, 10))
+    fig, axs = plt.subplots(nrows=nrows, figsize=(10, nrows*10))
     for (response_vector_name, response_vector), ax in zip(response_vectors.items(), axs):
         max = response_vector.max()
         ax.hist(response_vector, bins=np.arange(0, max, max / 100))
