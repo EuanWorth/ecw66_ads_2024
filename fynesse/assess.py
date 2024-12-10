@@ -184,9 +184,11 @@ def process_t1_sample(sample):
 
 
 def display_correlation_heatmaps(dfs):
-    for df_name, df in dfs.items():
-        fig, axs = plt.subplots(nrows=len(access.size_list), figsize=(10, 40))
-        for size, ax in zip(access.size_list, axs):
+    ncols = len(dfs)
+    nrows = len(access.size_list)
+    fig, axs = plt.subplot(nrows=nrows, ncols=ncols, figsize=(10 * ncols, 10 * nrows))
+    for (df_name, df), ax_row in zip(dfs.items(), axs):
+        for size, ax in zip(access.size_list, ax_row):
             sized_column_names = list(
                 map(lambda column: f"{size}_{column}", access.column_list)
             )
@@ -196,7 +198,7 @@ def display_correlation_heatmaps(dfs):
                 title=f"Correlation of {df_name} feature counts in {size} area around oa",
                 ax=ax,
             )
-        plt.show()
+    plt.show()
 
 
 def display_feature_correlations(dfs, response_vectors):
