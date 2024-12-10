@@ -3,7 +3,7 @@ import statsmodels.api as sm
 import scipy.stats as sps
 import pandas as pd
 import matplotlib.pyplot as plt
-from . import access
+from . import access, assess
 
 
 def cross_validate(
@@ -118,9 +118,11 @@ def fit_validate_and_predict(
         design_matrix=design_matrix, response_vector=response_vector, k=10
     )
     print(f"Cross Validation Score: {cross_validation_score}")
-    fig, ax = plt.subplots()
-    ax.scatter(response_vector, results.fittedvalues, alpha=0.5)
-    ax.set_xlabel("True Values")
-    ax.set_ylabel("Predicted Values")
-    ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
+    fig, (scatter_ax, hist_ax) = plt.subplots(nrows=2)
+    scatter_ax.scatter(response_vector, results.fittedvalues, alpha=0.5)
+    scatter_ax.set_xlabel("True Values")
+    scatter_ax.set_ylabel("Predicted Values")
+    scatter_ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
+    plt.show()
+    assess.display_single_response_vector_histogram(response_vector_name, results.fittedvalues, hist_ax)
     return lambda oa: results.fittedvalues[oa]

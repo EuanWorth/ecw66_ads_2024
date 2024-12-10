@@ -227,15 +227,21 @@ def display_feature_correlations(dfs, response_vectors):
             )
 
 
+def display_single_response_vector_histogram(response_vector_name, response_vector, ax):
+    max = response_vector.max()
+    ax.hist(response_vector, bins=np.arange(0, max, max / 100))
+    ax.set_title(f"Distribution of {response_vector_name} across output areas")
+
+
 def display_response_vector_histogram(response_vectors):
     nrows = len(response_vectors)
     fig, axs = plt.subplots(nrows=nrows, figsize=(10, nrows * 10))
     for (response_vector_name, response_vector), ax in zip(
         response_vectors.items(), axs
     ):
-        max = response_vector.max()
-        ax.hist(response_vector, bins=np.arange(0, max, max / 100))
-        ax.set_title(f"Distribution of {response_vector_name} across output areas")
+        display_single_response_vector_histogram(
+            response_vector_name, response_vector, ax
+        )
 
 
 def display_t1_features_vector_summaries(conn):
@@ -265,7 +271,8 @@ def fit_exploratory_models(dfs, response_vectors):
             for name, df in dfs.items():
                 design_matrix = df.dropna(subset=sized_column_names)
                 model = sm.OLS(
-                    response_vector[design_matrix.index], sm.add_constant(design_matrix[sized_column_names])
+                    response_vector[design_matrix.index],
+                    sm.add_constant(design_matrix[sized_column_names]),
                 )
                 results = model.fit()
                 title = f"Model for {response_vector_name} against size {size} on {name} osm data"
@@ -281,7 +288,8 @@ def fit_exploratory_models(dfs, response_vectors):
         for name, df in dfs.items():
             design_matrix = df.dropna(subset=sized_column_names)
             model = sm.OLS(
-                response_vector[design_matrix.index], sm.add_constant(design_matrix[sized_column_names])
+                response_vector[design_matrix.index],
+                sm.add_constant(design_matrix[sized_column_names]),
             )
             results = model.fit()
             title = (
