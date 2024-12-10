@@ -168,7 +168,7 @@ def process_deprivation_data(deprivation_data):
     deprivation_design_matrix.set_index(deprivation_df.index, inplace=True)
     deprivation_design_matrix = sm.add_constant(deprivation_design_matrix)
     deprivation_design_matrix = deprivation_design_matrix.astype(float)
-    deprivation_design_matrix, deprivation_df["average_deprivation"].astype(float)
+    return deprivation_design_matrix, deprivation_df["average_deprivation"].astype(float)
 
 
 def fit_validate_and_predict(
