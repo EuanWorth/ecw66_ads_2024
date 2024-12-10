@@ -177,7 +177,10 @@ def process_t1_sample(sample):
         log_df[sized_column_names] = sample_df[sized_column_names].apply(
             lambda column: np.log10(column + 1)
         )
-    return {"true": sample_df, "normalised": norm_df, "log": log_df}
+    return {"true": sample_df, "normalised": norm_df, "log": log_df}, {
+        "Percentage of students": sample_df["Percentage_of_students"],
+        "Average Deprivation": sample_df["Average_deprivation"],
+    }
 
 
 def display_correlation_heatmaps(dfs):
