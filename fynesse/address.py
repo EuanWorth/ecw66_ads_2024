@@ -182,7 +182,7 @@ def fit_validate_and_predict(
     )
     print(f"Cross Validation Score: {cross_validation_score}")
     fig, (scatter_ax, hist_ax) = plt.subplots(ncols=2, figsize=(20, 10))
-    scatter_ax.scatter(response_vector, results.fittedvalues, alpha=0.5)
+    scatter_ax.scatter(response_vector, results.fittedvalues, alpha=0.1)
     scatter_ax.set_xlabel("True Values")
     scatter_ax.set_ylabel("Predicted Values")
     scatter_ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
