@@ -228,8 +228,9 @@ def display_feature_correlations(dfs, response_vectors):
 
 
 def display_single_response_vector_histogram(response_vector_name, response_vector, ax):
-    max = response_vector.max()
-    ax.hist(response_vector, bins=np.arange(0, max, max / 100))
+    min_value = min(response_vector.min(), 0)
+    max_value = response_vector.max()
+    ax.hist(response_vector, bins=np.arange(min_value, max_value, (max_value - min_value) / 100))
     ax.set_title(f"Distribution of {response_vector_name} across output areas")
 
 
