@@ -186,8 +186,8 @@ def fit_validate_and_predict(
     scatter_ax.set_xlabel("True Values")
     scatter_ax.set_ylabel("Predicted Values")
     scatter_ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
-    plt.show()
     assess.display_single_response_vector_histogram(
         "Predicted" + response_vector_name, results.fittedvalues, hist_ax
     )
+    plt.show()
     return lambda oa: results.fittedvalues[oa]
