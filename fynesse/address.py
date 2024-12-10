@@ -108,6 +108,44 @@ def process_student_data(student_data):
     return student_design_matrix, student_df["student_percentage"].astype(float)
 
 
+def process_deprivation_data(deprivation_data):
+    deprivation_df = pd.DataFrame(deprivation_data)
+    deprivation_df["large_sum"][deprivation_df["large_sum"] == 0] = 1
+    deprivation_df["small_sum"][deprivation_df["small_sum"] == 0] = 1
+    deprivation_df.set_index("oa21cd", inplace=True)
+    deprivation_design_matrix = deprivation_df[
+        ["large_fuel", "exact_books", "small_bank", "exact_cafe", "exact_university"]
+    ]
+    deprivation_design_matrix["large_sport_normalised"] = (
+        deprivation_df["large_sport"] / deprivation_df["large_sum"]
+    )
+    deprivation_design_matrix["small_historic_normalised"] = (
+        deprivation_df["small_historic"] / deprivation_df["small_sum"]
+    )
+    deprivation_design_matrix["small_restaurant_normalised"] = (
+        deprivation_df["small_restaurant"] / deprivation_df["small_sum"]
+    )
+    deprivation_design_matrix["small_convenience_normalised"] = (
+        deprivation_df["small_convenience"] / deprivation_df["small_sum"]
+    )
+    deprivation_design_matrix["large_university_normalised"] = (
+        deprivation_df["large_university"] / deprivation_df["large_sum"]
+    )
+    deprivation_design_matrix["log_small_school"] = np.log10(
+        deprivation_df["small_school"] + 1
+    )
+    deprivation_design_matrix["log_small_historic"] = np.log10(
+        deprivation_df["small_historic"] + 1
+    )
+    deprivation_design_matrix["log_sport_exact"] = np.log10(
+        deprivation_df["exact_sport"] + 1
+    )
+    deprivation_design_matrix.set_index(deprivation_df.index, inplace=True)
+    deprivation_design_matrix = sm.add_constant(deprivation_design_matrix)
+    deprivation_design_matrix = deprivation_design_matrix.astype(float)
+    deprivation_design_matrix, deprivation_df["average_deprivation"].astype(float)
+
+
 def fit_validate_and_predict(
     design_matrix, response_vector, response_vector_name="Response Vector"
 ):
@@ -118,11 +156,13 @@ def fit_validate_and_predict(
         design_matrix=design_matrix, response_vector=response_vector, k=10
     )
     print(f"Cross Validation Score: {cross_validation_score}")
-    fig, (scatter_ax, hist_ax) = plt.subplots(nrows=2)
+    fig, (scatter_ax, hist_ax) = plt.subplots(ncols=2, figsize=(20, 10))
     scatter_ax.scatter(response_vector, results.fittedvalues, alpha=0.5)
     scatter_ax.set_xlabel("True Values")
     scatter_ax.set_ylabel("Predicted Values")
     scatter_ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
     plt.show()
-    assess.display_single_response_vector_histogram(response_vector_name, results.fittedvalues, hist_ax)
+    assess.display_single_response_vector_histogram(
+        "Predicted" + response_vector_name, results.fittedvalues, hist_ax
+    )
     return lambda oa: results.fittedvalues[oa]
