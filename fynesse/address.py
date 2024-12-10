@@ -76,7 +76,7 @@ JOIN `ts062_data` ON `ts062_data`.`geography_code` = `polygon_counts`.`oa21cd`
 
 def process_student_data(student_data):
     student_df = pd.DataFrame(student_data)
-    student_df[student_df["large_sum"] == 0, "large_sum"] = 1
+    student_df["large_sum"][student_df["large_sum"] == 0] = 1
     student_df.set_index("oa21cd", inplace=True)
     student_design_matrix = student_df[
         ["exact_library", "small_library", "small_convenience", "small_bar"]
