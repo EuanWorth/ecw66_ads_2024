@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 
+
 def display_heatmap(df, title, ax=None, use_rows=False):
     if ax is None:
         plt.matshow(df)
@@ -119,7 +120,7 @@ def display_osm_aggregate_summaries(conn):
 
 task_1_summary_sql_query = """
 SELECT
-oa_geo_data.oa21cd,
+oa_geo_data.oa21cd as oa21cd,
 oa_geo_data.latitude,
 oa_geo_data.longitude,
 ts062_data.Total_all_usual_residents,
@@ -168,6 +169,7 @@ def process_t1_sample(sample):
     sample_df["Percentage_of_students"] = (
         sample_df["number_of_students"] / sample_df["Total_all_usual_residents"]
     )
+    sample_df.set_index("oa21cd", inplace=True)
     norm_df = sample_df.copy()
     log_df = sample_df.copy()
     for size in access.size_list:
@@ -257,25 +259,35 @@ def display_t1_features_vector_summaries(conn):
 def fit_exploratory_models(dfs, response_vectors):
     for response_vector_name, response_vector in response_vectors.items():
         for size in access.size_list:
-          sized_column_names = list(map(lambda column: f"{size}_{column}", access.column_list))
-          for name, df in dfs.items():
+            sized_column_names = list(
+                map(lambda column: f"{size}_{column}", access.column_list)
+            )
+            for name, df in dfs.items():
+                design_matrix = df.dropna(subset=sized_column_names)
+                model = sm.OLS(
+                    response_vector, sm.add_constant(design_matrix[sized_column_names])
+                )
+                results = model.fit()
+                title = f"Model for {response_vector_name} against size {size} on {name} osm data"
+                under_line = "=" * len(title)
+                print(title)
+                print(under_line)
+                print(results.summary(), "\n\n\n\n\n")
+        sized_column_names = []
+        for column in access.column_list:
+            sized_column_names += list(
+                map(lambda size: f"{size}_{column}", access.size_list)
+            )
+        for name, df in dfs.items():
             design_matrix = df.dropna(subset=sized_column_names)
-            model = sm.OLS(response_vector, sm.add_constant(design_matrix[sized_column_names]))
+            model = sm.OLS(
+                response_vector, sm.add_constant(design_matrix[sized_column_names])
+            )
             results = model.fit()
-            title = f"Model for {response_vector_name} against size {size} on {name} osm data"
+            title = (
+                f"Model for {response_vector_name} against all sizes on {name} osm_data"
+            )
             under_line = "=" * len(title)
             print(title)
             print(under_line)
             print(results.summary(), "\n\n\n\n\n")
-        sized_column_names = []
-        for column in access.column_list:
-          sized_column_names += list(map(lambda size: f"{size}_{column}", access.size_list))
-        for name, df in dfs.items():
-          design_matrix = df.dropna(subset=sized_column_names)
-          model = sm.OLS(response_vector, sm.add_constant(design_matrix[sized_column_names]))
-          results = model.fit()
-          title = f"Model for {response_vector_name} against all sizes on {name} osm_data"
-          under_line = "=" * len(title)
-          print(title)
-          print(under_line)
-          print(results.summary(), "\n\n\n\n\n")
