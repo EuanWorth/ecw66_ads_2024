@@ -223,3 +223,19 @@ def display_feature_correlations(dfs, response_vectors):
                 ax=ax,
                 use_rows=True,
             )
+
+def display_response_vector_histogram(response_vectors):
+    ncols = len(response_vectors)
+    fig, axs = plt.subplots(ncols=ncols, fig_size=(10*ncols, 10))
+    for (response_vector_name, response_vector), ax in zip(response_vectors.items(), axs):
+        max = response_vector.max()
+        ax.hist(response_vector, bins=np.arange(0, max, max / 100))
+        ax.set_title(f"Distribution of {response_vector_name} across output areas")
+    
+def display_t1_features_vector_summaries(conn):
+    deprivation_data = access.sql_select(conn, "SELECT (1_deprivation + 2 * 2_deprivation + 3 * 3_deprivation + 4 * 4_deprivation) / total_households AS average_deprivation FROM `ts011_data`")
+    deprivation_df = pd.DataFrame(deprivation_data, columns=["Average Deprivation"])
+    students_data = access.sql_select(conn, "SELECT l15 / total_all_usual_residents AS 'Percentage_of_students' FROM `ts062_data`")
+    students_df = pd.DataFrame(students_data, columns=["Percentage of Students"])
+    response_vectors = {"Percentage of Students": students_df["Percentage of Students"], "Average Deprivation": deprivation_df["Average Deprivation"]}
+    display_response_vector_histogram(response_vectors)
