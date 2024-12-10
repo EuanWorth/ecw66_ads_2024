@@ -182,8 +182,8 @@ def process_t1_sample(sample):
 
 def display_correlation_heatmaps(dfs):
     for df_name, df in dfs.items():
-        fig, axes = plt.subplots(nrows=len(access.size_list), figsize=(10, 40))
-        for size, ax in zip(access.size_list, axes):
+        fig, axs = plt.subplots(nrows=len(access.size_list), figsize=(10, 40))
+        for size, ax in zip(access.size_list, axs):
             sized_column_names = list(
                 map(lambda column: f"{size}_{column}", access.column_list)
             )
@@ -194,3 +194,27 @@ def display_correlation_heatmaps(dfs):
                 ax=ax,
             )
         plt.show()
+
+
+def display_feature_correlations(dfs, response_vectors):
+    ncols = len(dfs)
+    nrows = len(response_vectors)
+    fig, axs = plt.subplots(ncols=ncols, nrows=nrows, figsize=(12 * ncols, 20 * nrows))
+    for (response_vector_name, response_vector), ax_row in zip(
+        response_vectors.items(), axs
+    ):
+        for (df_name, df), ax in zip(dfs.items(), ax_row):
+            corrs = {
+                size: {
+                    column: df[f"{size}_{column}"].corr(response_vector)
+                    for column in access.column_list
+                }
+                for size in access.size_list
+            }
+            corrs_df = pd.DataFrame(corrs)
+            display_heatmap(
+                corrs_df,
+                title=f"Correlation of {df_name} feature_counts against {response_vector_name} in area around oa",
+                ax=ax,
+                use_rows=True,
+            )
