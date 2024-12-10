@@ -265,7 +265,7 @@ def fit_exploratory_models(dfs, response_vectors):
             for name, df in dfs.items():
                 design_matrix = df.dropna(subset=sized_column_names)
                 model = sm.OLS(
-                    response_vector, sm.add_constant(design_matrix[sized_column_names])
+                    response_vector[design_matrix.index], sm.add_constant(design_matrix[sized_column_names])
                 )
                 results = model.fit()
                 title = f"Model for {response_vector_name} against size {size} on {name} osm data"
@@ -281,7 +281,7 @@ def fit_exploratory_models(dfs, response_vectors):
         for name, df in dfs.items():
             design_matrix = df.dropna(subset=sized_column_names)
             model = sm.OLS(
-                response_vector, sm.add_constant(design_matrix[sized_column_names])
+                response_vector[design_matrix.index], sm.add_constant(design_matrix[sized_column_names])
             )
             results = model.fit()
             title = (
