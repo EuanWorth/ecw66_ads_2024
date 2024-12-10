@@ -186,7 +186,7 @@ def process_t1_sample(sample):
 def display_correlation_heatmaps(dfs):
     ncols = len(dfs)
     nrows = len(access.size_list)
-    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10 * ncols, 10 * nrows))
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(13 * ncols, 13 * nrows))
     for (df_name, df), ax_row in zip(dfs.items(), axs):
         for size, ax in zip(access.size_list, ax_row):
             sized_column_names = list(
