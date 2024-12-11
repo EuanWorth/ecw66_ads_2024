@@ -291,10 +291,10 @@ def fit_validate_and_plot(
             results.fittedvalues, filtered_response_vector, response_vector_name, scatter_ax
         )
         assess.display_single_response_vector_histogram(
-            "Predicted" + response_vector_name, results.fittedvalues, hist_ax
+            "Predicted " + response_vector_name, results.fittedvalues, hist_ax
         )
         cross_validation_score = cross_validate(
-            design_matrix=filtered_design_matrix, response_vector=filtered_response_vector, k=10, n=4
+            design_matrix=filtered_design_matrix, response_vector=filtered_response_vector, k=10
         )
         title = f"Model for {response_vector_name}"
         under_line = "=" * len(title)
