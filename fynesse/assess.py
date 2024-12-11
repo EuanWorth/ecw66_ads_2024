@@ -301,6 +301,24 @@ def display_feature_correlations(dfs, response_vectors):
             )
 
 
+def display_feature_correlations_on_one_graph(
+    df, response_vectors, df_name="features", response_vectors_name="response vectors"
+):
+    corrs = {
+        response_vector_name: {
+            feature: feature_series.corr(response_vector)
+            for feature, feature_series in df.items()
+        }
+        for response_vector_name, response_vector in response_vectors.items()
+    }
+    corrs_df = pd.DataFrame(corrs)
+    display_heatmap(
+        df=corrs_df,
+        title=f"Correlation between {response_vectors_name} and {df_name}",
+        use_rows=True,
+    )
+
+
 def display_single_response_vector_histogram(
     response_vector_name, response_vector, ax, min_value=None, max_value=None
 ):
