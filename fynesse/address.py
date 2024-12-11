@@ -261,7 +261,7 @@ def fit_validate_and_predict(
         results.fittedvalues, response_vector, response_vector_name, scatter_ax
     )
     assess.display_single_response_vector_histogram(
-        "Predicted" + response_vector_name, results.fittedvalues, hist_ax
+        "Predicted" + response_vector_name, results.fittedvalues, hist_ax, min_value_p=-1, max_value_p=2
     )
     plt.show()
     return lambda oa: results.fittedvalues[oa]
