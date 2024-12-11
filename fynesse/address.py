@@ -258,7 +258,7 @@ def fit_validate_and_predict(
     print(f"Cross Validation Score: {cross_validation_score}")
     fig, (scatter_ax, hist_ax) = plt.subplots(ncols=2, figsize=(20, 10))
     plot_prediction_scatter(
-        results.fitted_values, response_vector, response_vector_name, scatter_ax
+        results.fittedvalues, response_vector, response_vector_name, scatter_ax
     )
     assess.display_single_response_vector_histogram(
         "Predicted" + response_vector_name, results.fittedvalues, hist_ax
