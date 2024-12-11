@@ -4,6 +4,7 @@ import math
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+from sklearn.cluster import KMeans
 
 size_table_name_map = {
     "exact": "polygon",
@@ -338,6 +339,17 @@ def display_t1_features_vector_summaries(conn):
     }
     display_response_vector_histogram(response_vectors)
 
+def display_t2_features_vector_summaries(conn):
+    response_vectors = {}
+    for occupation in access.occupations_list[1:]:
+        occupation_sql = f"""
+        SELECT
+        (occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) / occupations_2001_data_rezoned.{occupation}
+        FROM occupations_2001_data_rezoned JOIN occupations_2021_data ON occupations_2021_data.oa_2021 = occupations_2001_data_rezoned.oa_2021;"""
+        occupation_data = access.sql_select(conn, occupation_sql)
+        occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
+        response_vectors[occupation] = occupation_df["Change"]
+    display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
 
 def fit_exploratory_models(dfs, response_vectors):
     for response_vector_name, response_vector in response_vectors.items():
@@ -406,15 +418,16 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
     axs[2].set_xticklabels(access.occupations_list[1:], rotation=90)
     plt.show()
 
-
-def display_t2_features_vector_summaries(conn):
-    response_vectors = {}
-    for occupation in access.occupations_list[1:]:
-        occupation_sql = f"""
-        SELECT
-        (occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) / occupations_2001_data_rezoned.{occupation}
-        FROM occupations_2001_data_rezoned JOIN occupations_2021_data ON occupations_2021_data.oa_2021 = occupations_2001_data_rezoned.oa_2021;"""
-        occupation_data = access.sql_select(conn, occupation_sql)
-        occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
-        response_vectors[occupation] = occupation_df["Change"]
-    display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
+def display_kmeans_elbows(dfs):
+    ncols = len(dfs)
+    fig, axes = plt.subplots(ncols=ncols, figsize=(3*ncols,10))
+    for (df_name, df), ax in zip(dfs.items(), axes):
+      inertias = []
+      for k in range(1, len(df.columns)):
+        kmeans = KMeans(n_clusters=k, random_state=0).fit(df.T)
+        inertias.append(kmeans.inertia_)
+      ax.plot(range(1, len(df.columns)), inertias, marker='o')
+      ax.set_title(f"{df_name} Radius Intertias")
+      ax.set_xlabel('Number of clusters')
+      ax.set_xticks(range(1, 20))
+      ax.set_ylabel('Inertia')
