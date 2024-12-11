@@ -4,6 +4,7 @@ import math
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+import random
 from sklearn.cluster import KMeans
 
 size_table_name_map = {
@@ -442,6 +443,8 @@ def display_kmeans_elbows(dfs):
 
 def generate_clusters(dfs, ks_dict):
     features = []
+    arbitrary_index_column = random.choice(list(dfs.items()))[0]
+    clusters_df = pd.DataFrame(arbitrary_index_column)
     for df_name, df in dfs.items():
         kmeans = KMeans(n_clusters=ks_dict[df_name], random_state=0).fit(df.T)
         clusters = [[] for _ in range(ks_dict[df_name])]
@@ -449,7 +452,12 @@ def generate_clusters(dfs, ks_dict):
             clusters[cluster].append(df.columns[i])
         print("Clusters for", df_name, "radius:")
         for cluster in clusters:
-            print(cluster)
+            cluster_name = f"{cluster[0]}_cluster"
+            print(f"{cluster_name}: {cluster}")
+            clusters_df[cluster_name] = 0
+            for column in cluster:
+                clusters_df[cluster_name] += column
         features += clusters
         print()
-    return features
+    clusters_df.drop(columns=arbitrary_index_column, inplace=True)
+    return features, clusters_df
