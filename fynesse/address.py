@@ -276,14 +276,14 @@ def fit_validate_and_predict(
 
 
 def fit_validate_and_plot(
-    design_matrix, response_vectors, design_matrix_name="Features", filter = lambda _ : True 
+    design_matrix, response_vectors, design_matrix_name="Features", low_filter = lambda _ : True, high_filter = lambda _ : True 
 ):
     nrows = len(response_vectors)
     fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(20, 10 * nrows))
     for (response_vector_name, response_vector), (scatter_ax, hist_ax) in zip(
         response_vectors.items(), axs
     ):
-        filtered_response_vector = response_vector.where(filter)
+        filtered_response_vector = response_vector[low_filter][high_filter]
         filtered_design_matrix = design_matrix[filtered_response_vector.index]
         model = sm.OLS(filtered_response_vector, filtered_design_matrix)
         results = model.fit()
