@@ -239,7 +239,7 @@ def process_occupations_data(data, clusters):
         column = df[f"{occupation}_change"] / df["total_workers_2001"]
         column[column.isna()] = 0
         column[column == np.inf] = 0
-        response_vectors[f"{occupation}_change"] = column 
+        response_vectors[f"{occupation}_change"] = column
     return design_matrix, response_vectors
 
 
@@ -265,30 +265,36 @@ def fit_validate_and_predict(
         results.fittedvalues, response_vector, response_vector_name, scatter_ax
     )
     assess.display_single_response_vector_histogram(
-        "Predicted" + response_vector_name, results.fittedvalues, hist_ax, min_value_p=-1, max_value_p=2
+        "Predicted " + response_vector_name,
+        results.fittedvalues,
+        hist_ax,
+        min_value_p=-1,
+        max_value_p=2,
     )
     plt.show()
     return lambda oa: results.fittedvalues[oa]
 
 
 def fit_validate_and_plot(
-    design_matrix, response_vectors, design_matrix_name="Features"
+    design_matrix, response_vectors, design_matrix_name="Features", filter = lambda _ : True 
 ):
     nrows = len(response_vectors)
     fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(20, 10 * nrows))
     for (response_vector_name, response_vector), (scatter_ax, hist_ax) in zip(
         response_vectors.items(), axs
     ):
-        model = sm.OLS(response_vector, design_matrix)
+        filtered_response_vector = response_vector[filter(response_vector)]
+        filtered_design_matrix = design_matrix[filtered_response_vector.index]
+        model = sm.OLS(filtered_response_vector, filtered_design_matrix)
         results = model.fit()
         plot_prediction_scatter(
-            results.fittedvalues, response_vector, response_vector_name, scatter_ax
+            results.fittedvalues, filtered_response_vector, response_vector_name, scatter_ax
         )
         assess.display_single_response_vector_histogram(
             "Predicted" + response_vector_name, results.fittedvalues, hist_ax
         )
         cross_validation_score = cross_validate(
-            design_matrix=design_matrix, response_vector=response_vector, k=10, n=4
+            design_matrix=filtered_design_matrix, response_vector=filtered_response_vector, k=10, n=4
         )
         title = f"Model for {response_vector_name}"
         under_line = "=" * len(title)
