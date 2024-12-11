@@ -227,9 +227,11 @@ def display_feature_correlations(dfs, response_vectors):
             )
 
 
-def display_single_response_vector_histogram(response_vector_name, response_vector, ax):
-    min_value = min(response_vector.min(), 0)
-    max_value = response_vector.max()
+def display_single_response_vector_histogram(response_vector_name, response_vector, ax, min_value=None, max_value=None):
+    if min_value is None:
+      min_value = min(response_vector.min(), 0)
+    if max_value is None:
+      max_value = response_vector.max()
     ax.hist(
         response_vector,
         bins=np.arange(min_value, max_value, (max_value - min_value) / 100),
@@ -237,14 +239,14 @@ def display_single_response_vector_histogram(response_vector_name, response_vect
     ax.set_title(f"Distribution of {response_vector_name} across output areas")
 
 
-def display_response_vector_histogram(response_vectors):
+def display_response_vector_histogram(response_vectors, min_value=None, max_value=None):
     nrows = len(response_vectors)
     fig, axs = plt.subplots(nrows=nrows, figsize=(10, nrows * 10))
     for (response_vector_name, response_vector), ax in zip(
         response_vectors.items(), axs
     ):
         display_single_response_vector_histogram(
-            response_vector_name, response_vector, ax
+            response_vector_name, response_vector, ax, min_value, max_value
         )
 
 
@@ -324,3 +326,15 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
     axes[1].set_ylabel("Count")
     axes[1].set_xticklabels(access.occupations_list[1:], rotation=90)
     plt.show()
+
+def display_t2_features_vector_summaries(conn):
+    response_vectors = {}
+    for occupation in access.occupations_list[1:]:
+      occupation_sql = f"""
+        SELECT
+        (occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) / occupations_2001_data_rezoned.{occupation}
+        FROM occupations_2001_data_rezoned JOIN occupations_2021_data ON occupations_2021_data.oa2021 = occupations_2001_data_rezoned.oa2021;"""
+      occupation_data = access.sql_select(conn, occupation_sql)
+      occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
+      response_vectors[occupation] = occupation_df["Change"]
+    display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
