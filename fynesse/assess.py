@@ -313,7 +313,9 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
     total_2021_df = pd.DataFrame(total_2021_data)
     total_2001_df = pd.DataFrame(total_2001_data)
     fig, axes = plt.subplots(ncols=2, figsize=(20, 10))
-    axes[0].bar(access.occupations_list[1:], total_2021_df.iloc[0][1:])
+    occupation_list = access.occupations_list[1:]
+    print(total_2001_df)
+    axes[0].bar(occupation_list, total_2021_df.iloc[0][1:])
     axes[0].set_title("2021")
     axes[0].set_xlabel("Occupation")
     axes[0].set_ylabel("Count")
