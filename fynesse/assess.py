@@ -365,7 +365,7 @@ def display_t1_features_vector_summaries(conn):
     display_response_vector_histogram(response_vectors)
 
 
-def display_t2_features_vector_summaries(conn):
+def display_t2_features_vector_summaries(conn, filter=False):
     response_vectors = {}
     for occupation in access.occupations_list[1:]:
         occupation_sql = f"""
@@ -375,7 +375,10 @@ def display_t2_features_vector_summaries(conn):
         occupation_data = access.sql_select(conn, occupation_sql)
         occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
         response_vectors[occupation] = occupation_df["Change"]
-    display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
+    if filter:
+        display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
+    else:
+        display_response_vector_histogram(response_vectors)
 
 
 def fit_exploratory_models(dfs, response_vectors, use_sizes=True):
