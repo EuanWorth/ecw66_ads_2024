@@ -474,7 +474,7 @@ def generate_clusters(dfs, ks_dict):
             print(f"{cluster_name}: {cluster}")
             clusters_df[cluster_name] = 0
             for column in cluster:
-                clusters_df[cluster_name] += column
+                clusters_df[cluster_name] += df[column]
         features += clusters
         print()
     clusters_df.drop(columns=arbitrary_index_column, inplace=True)
