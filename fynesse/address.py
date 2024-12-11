@@ -278,14 +278,14 @@ def fit_validate_and_plot(
         model = sm.OLS(response_vector, design_matrix)
         results = model.fit()
         cross_validation_score = cross_validate(
-            design_matrix=design_matrix, response_vector=response_vector, k=10
+            design_matrix=design_matrix, response_vector=response_vector, k=10, n=4
         )
         title = f"Model for {response_vector_name}"
         under_line = "=" * len(title)
         print(title)
         print(under_line)
         print(results.summary())
-        print(f"Cross Validation Score: {cross_validation_score}")
+        print(f"10-Fold Cross Validation Score: {cross_validation_score}")
         print("\n\n\n\n\n")
         plot_prediction_scatter(
             results.fittedvalues, response_vector, response_vector_name, scatter_ax
