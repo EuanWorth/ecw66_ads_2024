@@ -284,7 +284,7 @@ def fit_validate_and_plot(
         response_vectors.items(), axs
     ):
         filtered_response_vector = response_vector[low_filter][high_filter]
-        filtered_design_matrix = design_matrix[filtered_response_vector.index]
+        filtered_design_matrix = design_matrix.loc[filtered_response_vector.index, :]
         model = sm.OLS(filtered_response_vector, filtered_design_matrix)
         results = model.fit()
         plot_prediction_scatter(
