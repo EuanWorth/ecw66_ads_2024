@@ -462,7 +462,7 @@ def display_kmeans_elbows(dfs):
 def generate_clusters(dfs, ks_dict):
     features = []
     arbitrary_index_column = random.choice(list(dfs.values())).iloc[:,0]
-    clusters_df = pd.DataFrame(arbitrary_index_column)
+    clusters_df = pd.DataFrame(arbitrary_index_column, columns="index_column")
     for df_name, df in dfs.items():
         kmeans = KMeans(n_clusters=ks_dict[df_name], random_state=0).fit(df.T)
         clusters = [[] for _ in range(ks_dict[df_name])]
@@ -477,5 +477,5 @@ def generate_clusters(dfs, ks_dict):
                 clusters_df[cluster_name] += df[column]
         features += clusters
         print()
-    clusters_df.drop(columns=arbitrary_index_column, inplace=True)
+    clusters_df.drop(labels="index_column", inplace=True)
     return features, clusters_df
