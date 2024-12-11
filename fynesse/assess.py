@@ -189,6 +189,7 @@ def generate_task2_summary_query():
     for table in occupations_tables_map.values():
         sql_query += f" JOIN {table} ON oa_geo_data.oa21cd = {table}.oa_2021\n"
     sql_query += "ORDER BY RAND()\n LIMIT 5000;"
+    return sql_query
 
 
 def process_t1_sample(sample):
@@ -220,21 +221,38 @@ def process_t1_sample(sample):
         "Average Deprivation": sample_df["Average_deprivation"],
     }
 
+
 def process_t2_sample(sample):
-  df = pd.DataFrame(sample)
-  normalised_df = df.copy()
-  normalised_df.set_index("oa21cd", inplace=True)
-  for size in size_table_name_map:
-    for column in access.column_list:
-      normalised_df[f"{size}_{column}"] = normalised_df[f"{size}_{column}"] / normalised_df[f"{size}_all_categories"]
-      normalised_df.loc[normalised_df[f"{size}_{column}"].isna(), f"{size}_{column}"] = 0
-  for occupation in access.occupations_list[1:]:
-    normalised_df[f"{occupation}_change"] = (normalised_df[f"{occupation}_{2021}"] - normalised_df[f"{occupation}_{2001}"]) / normalised_df[f"{occupation}_{2001}"].astype(float)
-    normalised_df.loc[normalised_df[f"{occupation}_change"].isna(), f"{occupation}_change"] = 1
-    normalised_df.loc[normalised_df[f"{occupation}_change"] == np.inf, f"{occupation}_change"] = 1
-  sized_dfs = {size: normalised_df[[f"{size}_{column}" for column in access.column_list]] for size in size_table_name_map}
-  response_vectors = {occupation: normalised_df[f"{occupation}_change"]}
-  return sized_dfs, response_vectors
+    df = pd.DataFrame(sample)
+    normalised_df = df.copy()
+    normalised_df.set_index("oa21cd", inplace=True)
+    for size in size_table_name_map:
+        for column in access.column_list:
+            normalised_df[f"{size}_{column}"] = (
+                normalised_df[f"{size}_{column}"]
+                / normalised_df[f"{size}_all_categories"]
+            )
+            normalised_df.loc[
+                normalised_df[f"{size}_{column}"].isna(), f"{size}_{column}"
+            ] = 0
+    for occupation in access.occupations_list[1:]:
+        normalised_df[f"{occupation}_change"] = (
+            normalised_df[f"{occupation}_{2021}"]
+            - normalised_df[f"{occupation}_{2001}"]
+        ) / normalised_df[f"{occupation}_{2001}"].astype(float)
+        normalised_df.loc[
+            normalised_df[f"{occupation}_change"].isna(), f"{occupation}_change"
+        ] = 1
+        normalised_df.loc[
+            normalised_df[f"{occupation}_change"] == np.inf, f"{occupation}_change"
+        ] = 1
+    sized_dfs = {
+        size: normalised_df[[f"{size}_{column}" for column in access.column_list]]
+        for size in size_table_name_map
+    }
+    response_vectors = {occupation: normalised_df[f"{occupation}_change"]}
+    return sized_dfs, response_vectors
+
 
 def display_correlation_heatmaps(dfs):
     ncols = len(dfs)
