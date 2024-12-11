@@ -230,7 +230,10 @@ def display_feature_correlations(dfs, response_vectors):
 def display_single_response_vector_histogram(response_vector_name, response_vector, ax):
     min_value = min(response_vector.min(), 0)
     max_value = response_vector.max()
-    ax.hist(response_vector, bins=np.arange(min_value, max_value, (max_value - min_value) / 100))
+    ax.hist(
+        response_vector,
+        bins=np.arange(min_value, max_value, (max_value - min_value) / 100),
+    )
     ax.set_title(f"Distribution of {response_vector_name} across output areas")
 
 
@@ -301,21 +304,23 @@ def fit_exploratory_models(dfs, response_vectors):
             print(under_line)
             print(results.summary(), "\n\n\n\n\n")
 
+
 def get_nationwide_occupation_sql(table):
     return f"SELECT SUM(`all_categories`), SUM(`managers`), SUM(`professional_occupations`), SUM(`associate_professional_occupations`), SUM(`administrative_occupations`), SUM(`skilled_trades`), SUM(`personal_service`), SUM(`sales_and_customer_service`), SUM(`process_manufacturing`), SUM(`elementary_occupations`) FROM `{table}`;"
 
+
 def display_nationwide_occupation_data(total_2001_data, total_2021_data):
-  total_2021_df = pd.DataFrame(total_2021_data)    
-  total_2001_df = pd.DataFrame(total_2001_data)
-  fig, axes = plt.subplots(ncols=2, figsize=(20,10))
-  axes[0].bar(access.occupations_list[1:], total_2021_df.iloc[0][1:])
-  axes[0].set_title("2021")
-  axes[0].set_xlabel("Occupation")
-  axes[0].set_ylabel("Count")
-  axes[0].set_xticklabels(access.occupations_list[1:], rotation=90)
-  axes[1].bar(access.occupations_list[1:], total_2001_df.iloc[0][1:])
-  axes[1].set_title("2001")
-  axes[1].set_xlabel("Occupation")
-  axes[1].set_ylabel("Count")
-  axes[1].set_xticklabels(access.occupations_list[1:], rotation=90)
-  plt.show()
+    total_2021_df = pd.DataFrame(total_2021_data)
+    total_2001_df = pd.DataFrame(total_2001_data)
+    fig, axes = plt.subplots(ncols=2, figsize=(20, 10))
+    axes[0].bar(access.occupations_list[1:], total_2021_df.iloc[0][1:])
+    axes[0].set_title("2021")
+    axes[0].set_xlabel("Occupation")
+    axes[0].set_ylabel("Count")
+    axes[0].set_xticklabels(access.occupations_list[1:], rotation=90)
+    axes[1].bar(access.occupations_list[1:], total_2001_df.iloc[0][1:])
+    axes[1].set_title("2001")
+    axes[1].set_xlabel("Occupation")
+    axes[1].set_ylabel("Count")
+    axes[1].set_xticklabels(access.occupations_list[1:], rotation=90)
+    plt.show()
