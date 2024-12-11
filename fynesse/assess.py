@@ -423,10 +423,10 @@ def display_kmeans_elbows(dfs):
     fig, axes = plt.subplots(ncols=ncols, figsize=(3*ncols,10))
     for (df_name, df), ax in zip(dfs.items(), axes):
       inertias = []
-      for k in range(1, len(df.columns)):
+      for k in range(3, len(df.columns)):
         kmeans = KMeans(n_clusters=k, random_state=0).fit(df.T)
         inertias.append(kmeans.inertia_)
-      ax.plot(range(1, len(df.columns)), inertias, marker='o')
+      ax.plot(range(3, len(df.columns)), inertias, marker='o')
       ax.set_title(f"{df_name} Radius Intertias")
       ax.set_xlabel('Number of clusters')
       ax.set_xticks(range(1, 20))
