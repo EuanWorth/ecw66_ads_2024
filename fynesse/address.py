@@ -222,6 +222,8 @@ def process_deprivation_data(deprivation_data):
 
 def process_occupations_data(data, clusters):
     df = pd.DataFrame(data).set_index("oa21cd")
+    for size in access.size_list:
+        df[f"{size}_all_categories"][df[f"{size}_all_categories"] == 0] = 1
     columns = []
     for cluster in clusters:
         cluster_size = cluster[0][: cluster[0].index("_")]
