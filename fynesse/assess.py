@@ -333,7 +333,7 @@ def display_t2_features_vector_summaries(conn):
       occupation_sql = f"""
         SELECT
         (occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) / occupations_2001_data_rezoned.{occupation}
-        FROM occupations_2001_data_rezoned JOIN occupations_2021_data ON occupations_2021_data.oa2021 = occupations_2001_data_rezoned.oa2021;"""
+        FROM occupations_2001_data_rezoned JOIN occupations_2021_data ON occupations_2021_data.oa_2021 = occupations_2001_data_rezoned.oa_2021;"""
       occupation_data = access.sql_select(conn, occupation_sql)
       occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
       response_vectors[occupation] = occupation_df["Change"]
