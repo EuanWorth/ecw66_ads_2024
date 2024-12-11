@@ -91,6 +91,19 @@ column_list = gen_column_list()
 
 size_list = ["exact", "small", "large"]
 
+occupations_list = [
+    "all_categories",
+    "managers",
+    "professional_occupations",
+    "associate_professional_occupations",
+    "administrative_occupations",
+    "skilled_trades",
+    "personal_service",
+    "sales_and_customer_service",
+    "process_manufacturing",
+    "elementary_occupations",
+]
+
 
 def download_price_paid_data(year_from, year_to):
     # Base URL where the dataset is stored
