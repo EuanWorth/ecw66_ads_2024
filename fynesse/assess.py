@@ -438,3 +438,18 @@ def display_kmeans_elbows(dfs):
         ax.set_xticks(range(3, len(df.columns)))
         ax.set_ylabel("Inertia")
     plt.show()
+
+
+def generate_clusters(dfs, ks_dict):
+    features = []
+    for df_name, df in dfs.items():
+        kmeans = KMeans(n_clusters=ks_dict[df_name], random_state=0).fit(df.T)
+        clusters = [[] for _ in range(ks_dict[df_name])]
+        for i, cluster in enumerate(kmeans.labels_):
+            clusters[cluster].append(df.columns[i])
+        print("Clusters for", df_name, "radius:")
+        for cluster in clusters:
+            print(cluster)
+        features += clusters
+        print()
+    return features
