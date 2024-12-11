@@ -277,6 +277,12 @@ def fit_validate_and_plot(
     ):
         model = sm.OLS(response_vector, design_matrix)
         results = model.fit()
+        plot_prediction_scatter(
+            results.fittedvalues, response_vector, response_vector_name, scatter_ax
+        )
+        assess.display_single_response_vector_histogram(
+            "Predicted" + response_vector_name, results.fittedvalues, hist_ax
+        )
         cross_validation_score = cross_validate(
             design_matrix=design_matrix, response_vector=response_vector, k=10, n=4
         )
@@ -287,10 +293,4 @@ def fit_validate_and_plot(
         print(results.summary())
         print(f"10-Fold Cross Validation Score: {cross_validation_score}")
         print("\n\n\n\n\n")
-        plot_prediction_scatter(
-            results.fittedvalues, response_vector, response_vector_name, scatter_ax
-        )
-        assess.display_single_response_vector_histogram(
-            "Predicted" + response_vector_name, results.fittedvalues, hist_ax
-        )
     plt.show()

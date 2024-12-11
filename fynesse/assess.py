@@ -319,12 +319,17 @@ def display_feature_correlations_on_one_graph(
 
 
 def display_single_response_vector_histogram(
-    response_vector_name, response_vector, ax, min_value=None, max_value=None
+    response_vector_name, response_vector, ax, min_value_p=None, max_value_p=None
 ):
-    if min_value is None:
+    if min_value_p is None:
         min_value = min(response_vector.min(), 0)
-    if max_value is None:
+    else:
+        min_value = min_value_p
+    if max_value_p is None:
         max_value = response_vector.max()
+    else:
+        max_value = max_value_p
+    print(min_value, max_value)
     ax.hist(
         response_vector,
         bins=np.arange(min_value, max_value, (max_value - min_value) / 100),
