@@ -283,7 +283,7 @@ def fit_validate_and_plot(
     for (response_vector_name, response_vector), (scatter_ax, hist_ax) in zip(
         response_vectors.items(), axs
     ):
-        filtered_response_vector = response_vector[filter(response_vector)]
+        filtered_response_vector = response_vector.where(filter)
         filtered_design_matrix = design_matrix[filtered_response_vector.index]
         model = sm.OLS(filtered_response_vector, filtered_design_matrix)
         results = model.fit()
