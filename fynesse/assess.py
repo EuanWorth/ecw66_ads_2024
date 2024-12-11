@@ -426,7 +426,7 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
 
 def display_kmeans_elbows(dfs):
     ncols = len(dfs)
-    fig, axes = plt.subplots(ncols=ncols, figsize=(3 * ncols, 10))
+    fig, axes = plt.subplots(ncols=ncols, figsize=(10 * ncols, 10))
     for (df_name, df), ax in zip(dfs.items(), axes):
         inertias = []
         for k in range(3, len(df.columns)):
