@@ -234,10 +234,12 @@ def process_occupations_data(data, clusters):
         columns.append(new_column)
     design_matrix = pd.concat(columns, axis=1)
     design_matrix = sm.add_constant(design_matrix)
-    response_vectors = {
-        f"{occupation}_change": df[f"{occupation}_change"] / df["total_workers_2001"]
-        for occupation in access.occupations_list[1:]
-    }
+    response_vectors = {}
+    for occupation in access.occupations_list[1:]:
+        column = df[f"{occupation}_change"] / df["total_workers_2001"]
+        column[column.isna()] = 0
+        column[column == np.inf] = 0
+        response_vectors[occupation] = column 
     return design_matrix, response_vectors
 
 
