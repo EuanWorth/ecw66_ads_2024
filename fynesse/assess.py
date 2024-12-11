@@ -476,5 +476,4 @@ def generate_clusters(dfs, ks_dict):
                 clusters_df[cluster_name] += df[column]
         features += clusters
         print()
-    clusters_df.drop(labels="index_column", inplace=True)
     return features, clusters_df
