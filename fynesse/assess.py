@@ -329,7 +329,6 @@ def display_single_response_vector_histogram(
         max_value = response_vector.max()
     else:
         max_value = max_value_p
-    print(min_value, max_value)
     ax.hist(
         response_vector,
         bins=np.arange(min_value, max_value, (max_value - min_value) / 100),

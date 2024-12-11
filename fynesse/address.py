@@ -239,7 +239,7 @@ def process_occupations_data(data, clusters):
         column = df[f"{occupation}_change"] / df["total_workers_2001"]
         column[column.isna()] = 0
         column[column == np.inf] = 0
-        response_vectors[occupation] = column 
+        response_vectors[f"{occupation}_change"] = column 
     return design_matrix, response_vectors
 
 
