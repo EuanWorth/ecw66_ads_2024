@@ -251,7 +251,10 @@ def process_t2_sample(sample):
         size: normalised_df[[f"{size}_{column}" for column in access.column_list]]
         for size in size_table_name_map
     }
-    response_vectors = {occupation: normalised_df[f"{occupation}_change"] for occupation in access.occupations_list[1:]}
+    response_vectors = {
+        occupation: normalised_df[f"{occupation}_change"]
+        for occupation in access.occupations_list[1:]
+    }
     return sized_dfs, response_vectors
 
 
@@ -339,6 +342,7 @@ def display_t1_features_vector_summaries(conn):
     }
     display_response_vector_histogram(response_vectors)
 
+
 def display_t2_features_vector_summaries(conn):
     response_vectors = {}
     for occupation in access.occupations_list[1:]:
@@ -350,6 +354,7 @@ def display_t2_features_vector_summaries(conn):
         occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
         response_vectors[occupation] = occupation_df["Change"]
     display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
+
 
 def fit_exploratory_models(dfs, response_vectors):
     for response_vector_name, response_vector in response_vectors.items():
@@ -418,16 +423,18 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
     axs[2].set_xticklabels(access.occupations_list[1:], rotation=90)
     plt.show()
 
+
 def display_kmeans_elbows(dfs):
     ncols = len(dfs)
-    fig, axes = plt.subplots(ncols=ncols, figsize=(3*ncols,10))
+    fig, axes = plt.subplots(ncols=ncols, figsize=(3 * ncols, 10))
     for (df_name, df), ax in zip(dfs.items(), axes):
-      inertias = []
-      for k in range(3, len(df.columns)):
-        kmeans = KMeans(n_clusters=k, random_state=0).fit(df.T)
-        inertias.append(kmeans.inertia_)
-      ax.plot(range(3, len(df.columns)), inertias, marker='o')
-      ax.set_title(f"{df_name} Radius Intertias")
-      ax.set_xlabel('Number of clusters')
-      ax.set_xticks(range(1, 20))
-      ax.set_ylabel('Inertia')
+        inertias = []
+        for k in range(3, len(df.columns)):
+            kmeans = KMeans(n_clusters=k, random_state=0).fit(df.T)
+            inertias.append(kmeans.inertia_)
+        ax.plot(range(3, len(df.columns)), inertias, marker="o")
+        ax.set_title(f"{df_name} Radius Intertias")
+        ax.set_xlabel("Number of clusters")
+        ax.set_xticks(range(3, len(df.columns)))
+        ax.set_ylabel("Inertia")
+    plt.show()
