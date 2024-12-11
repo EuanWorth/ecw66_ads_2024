@@ -374,12 +374,30 @@ def display_t2_features_vector_summaries(conn):
     display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
 
 
-def fit_exploratory_models(dfs, response_vectors):
-    for response_vector_name, response_vector in response_vectors.items():
-        for size in access.size_list:
-            sized_column_names = list(
-                map(lambda column: f"{size}_{column}", access.column_list)
-            )
+def fit_exploratory_models(dfs, response_vectors, use_sizes=True):
+    if use_sizes:
+        for response_vector_name, response_vector in response_vectors.items():
+            for size in access.size_list:
+                sized_column_names = list(
+                    map(lambda column: f"{size}_{column}", access.column_list)
+                )
+                for name, df in dfs.items():
+                    design_matrix = df.dropna(subset=sized_column_names)
+                    model = sm.OLS(
+                        response_vector[design_matrix.index],
+                        sm.add_constant(design_matrix[sized_column_names]),
+                    )
+                    results = model.fit()
+                    title = f"Model for {response_vector_name} against size {size} on {name} osm data"
+                    under_line = "=" * len(title)
+                    print(title)
+                    print(under_line)
+                    print(results.summary(), "\n\n\n\n\n")
+            sized_column_names = []
+            for column in access.column_list:
+                sized_column_names += list(
+                    map(lambda size: f"{size}_{column}", access.size_list)
+                )
             for name, df in dfs.items():
                 design_matrix = df.dropna(subset=sized_column_names)
                 model = sm.OLS(
@@ -387,30 +405,25 @@ def fit_exploratory_models(dfs, response_vectors):
                     sm.add_constant(design_matrix[sized_column_names]),
                 )
                 results = model.fit()
-                title = f"Model for {response_vector_name} against size {size} on {name} osm data"
+                title = f"Model for {response_vector_name} against all sizes on {name} osm_data"
                 under_line = "=" * len(title)
                 print(title)
                 print(under_line)
                 print(results.summary(), "\n\n\n\n\n")
-        sized_column_names = []
-        for column in access.column_list:
-            sized_column_names += list(
-                map(lambda size: f"{size}_{column}", access.size_list)
-            )
-        for name, df in dfs.items():
-            design_matrix = df.dropna(subset=sized_column_names)
-            model = sm.OLS(
-                response_vector[design_matrix.index],
-                sm.add_constant(design_matrix[sized_column_names]),
-            )
-            results = model.fit()
-            title = (
-                f"Model for {response_vector_name} against all sizes on {name} osm_data"
-            )
-            under_line = "=" * len(title)
-            print(title)
-            print(under_line)
-            print(results.summary(), "\n\n\n\n\n")
+    else:
+        for response_vector_name, response_vector in response_vectors.items():
+            for name, df in dfs.items():
+                design_matrix = df.dropna()
+                model = sm.OLS(
+                    response_vector[design_matrix.index],
+                    sm.add_constant(design_matrix[sized_column_names]),
+                )
+                results = model.fit()
+                title = f"Model for {response_vector_name} against all sizes on {name} osm_data"
+                under_line = "=" * len(title)
+                print(title)
+                print(under_line)
+                print(results.summary(), "\n\n\n\n\n")
 
 
 def get_nationwide_occupation_sql(table):
@@ -460,8 +473,7 @@ def display_kmeans_elbows(dfs):
 
 def generate_clusters(dfs, ks_dict):
     features = []
-    arbitrary_index_column = pd.DataFrame(index=list(dfs.values())[0].index)
-    clusters_df = pd.DataFrame(arbitrary_index_column, columns="index_column")
+    clusters_df = pd.DataFrame(index=list(dfs.values())[0].index)
     for df_name, df in dfs.items():
         kmeans = KMeans(n_clusters=ks_dict[df_name], random_state=0).fit(df.T)
         clusters = [[] for _ in range(ks_dict[df_name])]
