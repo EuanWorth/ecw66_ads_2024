@@ -98,33 +98,52 @@ JOIN `large_radius_counts` ON `polygon_counts`.`oa21cd` = `large_radius_counts`.
 JOIN `ts011_data` ON `ts011_data`.`geography_code` = `polygon_counts`.`oa21cd`
 """
 
+
 def generate_occupation_sql_query(clusters):
-    sized_sums_sql = {size: "(" + "".join([f"{table_size}_counts.{column} + " for column in access.column_list])[:-3] + ")" for size, table_size in assess.size_table_name_map.items()}
-    total_workers_sql = "(" + "".join([f"occupations_2001_data_rezoned.{occupation} + " for occupation in access.occupations_list[1:]])[:-3] + ")"
+    sized_sums_sql = {
+        size: "("
+        + "".join(
+            [f"{table_size}_counts.{column} + " for column in access.column_list]
+        )[:-3]
+        + ")"
+        for size, table_size in assess.size_table_name_map.items()
+    }
+    total_workers_sql = (
+        "("
+        + "".join(
+            [
+                f"occupations_2001_data_rezoned.{occupation} + "
+                for occupation in access.occupations_list[1:]
+            ]
+        )[:-3]
+        + ")"
+    )
     final_sql_query = "SELECT \n"
     final_sql_query += "oa_geo_data.oa21cd AS oa21cd, \n"
     for size, sum_sql in sized_sums_sql.items():
-      final_sql_query += f"{sum_sql} AS {size}_all_categories,\n"
+        final_sql_query += f"{sum_sql} AS {size}_all_categories,\n"
     for cluster in clusters:
-      final_sql_query += "("
-      for column in cluster:
-        split_index = column.index("_")
-        size = column[:split_index]
-        osm_feature_type = column[split_index + 1:]
-        final_sql_query += f"{assess.size_table_name_map[size]}_counts.{osm_feature_type} + "
-      final_sql_query = final_sql_query[:-3]
-      final_sql_query += f") AS {cluster[0]}_cluster,\n"
+        final_sql_query += "("
+        for column in cluster:
+            split_index = column.index("_")
+            size = column[:split_index]
+            osm_feature_type = column[split_index + 1 :]
+            final_sql_query += (
+                f"{assess.size_table_name_map[size]}_counts.{osm_feature_type} + "
+            )
+        final_sql_query = final_sql_query[:-3]
+        final_sql_query += f") AS {cluster[0]}_cluster,\n"
     final_sql_query += total_workers_sql
     final_sql_query += "AS total_workers_2001,\n"
     for occupation in access.occupations_list[1:]:
-      final_sql_query += f"(occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) AS {occupation}_change,\n"
+        final_sql_query += f"(occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) AS {occupation}_change,\n"
     final_sql_query = final_sql_query[:-2] + "\n"
     final_sql_query += "FROM oa_geo_data\n"
     for size_table_name in assess.size_table_name_map.values():
-      final_sql_query += f"JOIN {size_table_name}_counts ON oa_geo_data.oa21cd = {size_table_name}_counts.oa21cd\n"
+        final_sql_query += f"JOIN {size_table_name}_counts ON oa_geo_data.oa21cd = {size_table_name}_counts.oa21cd\n"
     final_sql_query += "JOIN occupations_2001_data_rezoned ON oa_geo_data.oa21cd = occupations_2001_data_rezoned.oa_2021\n"
     final_sql_query += "JOIN occupations_2021_data ON oa_geo_data.oa21cd = occupations_2021_data.oa_2021;"
-    return (final_sql_query)
+    return final_sql_query
 
 
 def process_student_data(student_data):
@@ -196,22 +215,36 @@ def process_deprivation_data(deprivation_data):
     deprivation_design_matrix.set_index(deprivation_df.index, inplace=True)
     deprivation_design_matrix = sm.add_constant(deprivation_design_matrix)
     deprivation_design_matrix = deprivation_design_matrix.astype(float)
-    return deprivation_design_matrix, deprivation_df["average_deprivation"].astype(float)
+    return deprivation_design_matrix, deprivation_df["average_deprivation"].astype(
+        float
+    )
+
 
 def process_occupations_data(data, clusters):
     df = pd.DataFrame(data).set_index("oa21cd")
     columns = []
     for cluster in clusters:
-      cluster_size = cluster[0][:cluster[0].index("_")]
-      new_column = df[f"{cluster[0]}_cluster"] / df[f"{cluster_size}_all_categories"]
-      new_column.name = f"normalised_{cluster[0]}_cluster"
-      new_column[new_column.isna()] = 0
-      new_column[new_column == np.inf] = 0
-      columns.append(new_column)
+        cluster_size = cluster[0][: cluster[0].index("_")]
+        new_column = df[f"{cluster[0]}_cluster"] / df[f"{cluster_size}_all_categories"]
+        new_column.name = f"normalised_{cluster[0]}_cluster"
+        new_column[new_column.isna()] = 0
+        new_column[new_column == np.inf] = 0
+        columns.append(new_column)
     design_matrix = pd.concat(columns, axis=1)
     design_matrix = sm.add_constant(design_matrix)
-    response_vectors = {f"{occupation}_change": df[f"{occupation}_change"] / df["total_workers_2001"] for occupation in access.occupations_list[1:]}
+    response_vectors = {
+        f"{occupation}_change": df[f"{occupation}_change"] / df["total_workers_2001"]
+        for occupation in access.occupations_list[1:]
+    }
     return design_matrix, response_vectors
+
+
+def plot_prediction_scatter(predicted_values, true_values, response_vector_name, ax):
+    ax.scatter(true_values, predicted_values, alpha=0.1)
+    ax.set_xlabel("True Values")
+    ax.set_ylabel("Predicted Values")
+    ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
+
 
 def fit_validate_and_predict(
     design_matrix, response_vector, response_vector_name="Response Vector"
@@ -224,12 +257,40 @@ def fit_validate_and_predict(
     )
     print(f"Cross Validation Score: {cross_validation_score}")
     fig, (scatter_ax, hist_ax) = plt.subplots(ncols=2, figsize=(20, 10))
-    scatter_ax.scatter(response_vector, results.fittedvalues, alpha=0.1)
-    scatter_ax.set_xlabel("True Values")
-    scatter_ax.set_ylabel("Predicted Values")
-    scatter_ax.set_title(f"True vs. Predicted Values for {response_vector_name}")
+    plot_prediction_scatter(
+        results.fitted_values, response_vector, response_vector_name, scatter_ax
+    )
     assess.display_single_response_vector_histogram(
         "Predicted" + response_vector_name, results.fittedvalues, hist_ax
     )
     plt.show()
     return lambda oa: results.fittedvalues[oa]
+
+
+def fit_validate_and_plot(
+    design_matrix, response_vectors, design_matrix_name="Features"
+):
+    nrows = len(response_vectors)
+    fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(20, 10 * nrows))
+    for (response_vector_name, response_vector), (scatter_ax, hist_ax) in zip(
+        response_vectors.items(), axs
+    ):
+        model = sm.OLS(response_vector, design_matrix)
+        results = model.fit()
+        cross_validation_score = cross_validate(
+            design_matrix=design_matrix, response_vector=response_vector, k=10
+        )
+        title = f"Model for {response_vector_name}"
+        under_line = "=" * len(title)
+        print(title)
+        print(under_line)
+        print(results.summary())
+        print(f"Cross Validation Score: {cross_validation_score}")
+        print("\n\n\n\n\n")
+        plot_prediction_scatter(
+            results.fitted_values, response_vector, response_vector_name, scatter_ax
+        )
+        assess.display_single_response_vector_histogram(
+            "Predicted" + response_vector_name, results.fittedvalues, hist_ax
+        )
+    plt.show()
