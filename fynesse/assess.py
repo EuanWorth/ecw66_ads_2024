@@ -5,6 +5,16 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 
+size_table_name_map = {
+    "exact": "polygon",
+    "small": "small_radius",
+    "large": "large_radius",
+}
+occupations_tables_map = {
+    2001: "occupations_2001_data_rezoned",
+    2021: "occupations_2021_data",
+}
+
 
 def display_heatmap(df, title, ax=None, use_rows=False):
     if ax is None:
@@ -155,6 +165,32 @@ ORDER BY RAND() LIMIT 2500;
 """
 
 
+def generate_task2_summary_query():
+    sql_query = "SELECT\n"
+    for column in access.column_list:
+        for size in size_table_name_map:
+            sql_query += (
+                f" {size_table_name_map[size]}_counts.{column} as {size}_{column},\n"
+            )
+    for size in size_table_name_map:
+        for column in access.column_list:
+            sql_query += f" {size_table_name_map[size]}_counts.{column} +"
+        sql_query = sql_query[:-1]
+        sql_query += f"as {size}_all_categories,\n"
+    for year, table in occupations_tables_map.items():
+        for occupation in access.occupations_list[1:]:
+            sql_query += f" {table}.{occupation} as {occupation}_{year},\n"
+    sql_query += " oa_geo_data.oa21cd as oa21cd\n"
+    sql_query += " FROM oa_geo_data\n"
+    for size in size_table_name_map.values():
+        sql_query += (
+            f" JOIN {size}_counts ON oa_geo_data.oa21cd = {size}_counts.oa21cd\n"
+        )
+    for table in occupations_tables_map.values():
+        sql_query += f" JOIN {table} ON oa_geo_data.oa21cd = {table}.oa_2021\n"
+    sql_query += "ORDER BY RAND()\n LIMIT 5000;"
+
+
 def process_t1_sample(sample):
     column_list = access.column_list
     sample_df = pd.DataFrame(sample)
@@ -184,6 +220,21 @@ def process_t1_sample(sample):
         "Average Deprivation": sample_df["Average_deprivation"],
     }
 
+def process_t2_sample(sample):
+  df = pd.DataFrame(sample)
+  normalised_df = df.copy()
+  normalised_df.set_index("oa21cd", inplace=True)
+  for size in size_table_name_map:
+    for column in access.column_list:
+      normalised_df[f"{size}_{column}"] = normalised_df[f"{size}_{column}"] / normalised_df[f"{size}_all_categories"]
+      normalised_df.loc[normalised_df[f"{size}_{column}"].isna(), f"{size}_{column}"] = 0
+  for occupation in access.occupations_list[1:]:
+    normalised_df[f"{occupation}_change"] = (normalised_df[f"{occupation}_{2021}"] - normalised_df[f"{occupation}_{2001}"]) / normalised_df[f"{occupation}_{2001}"].astype(float)
+    normalised_df.loc[normalised_df[f"{occupation}_change"].isna(), f"{occupation}_change"] = 1
+    normalised_df.loc[normalised_df[f"{occupation}_change"] == np.inf, f"{occupation}_change"] = 1
+  sized_dfs = {size: normalised_df[[f"{size}_{column}" for column in access.column_list]] for size in size_table_name_map}
+  response_vectors = {occupation: normalised_df[f"{occupation}_change"]}
+  return sized_dfs, response_vectors
 
 def display_correlation_heatmaps(dfs):
     ncols = len(dfs)
@@ -227,11 +278,13 @@ def display_feature_correlations(dfs, response_vectors):
             )
 
 
-def display_single_response_vector_histogram(response_vector_name, response_vector, ax, min_value=None, max_value=None):
+def display_single_response_vector_histogram(
+    response_vector_name, response_vector, ax, min_value=None, max_value=None
+):
     if min_value is None:
-      min_value = min(response_vector.min(), 0)
+        min_value = min(response_vector.min(), 0)
     if max_value is None:
-      max_value = response_vector.max()
+        max_value = response_vector.max()
     ax.hist(
         response_vector,
         bins=np.arange(min_value, max_value, (max_value - min_value) / 100),
@@ -325,7 +378,9 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
     axs[1].set_xlabel("Occupation")
     axs[1].set_ylabel("Count")
     axs[1].set_xticklabels(access.occupations_list[1:], rotation=90)
-    changes = (total_2021_df.iloc[0][1:] - total_2001_df.iloc[0][1:]) / total_2001_df.iloc[0][1:]
+    changes = (
+        total_2021_df.iloc[0][1:] - total_2001_df.iloc[0][1:]
+    ) / total_2001_df.iloc[0][1:]
     axs[2].bar(access.occupations_list[1:], changes)
     axs[2].set_title("Change in occupation count")
     axs[2].set_xlabel("Occupation")
@@ -333,14 +388,15 @@ def display_nationwide_occupation_data(total_2001_data, total_2021_data):
     axs[2].set_xticklabels(access.occupations_list[1:], rotation=90)
     plt.show()
 
+
 def display_t2_features_vector_summaries(conn):
     response_vectors = {}
     for occupation in access.occupations_list[1:]:
-      occupation_sql = f"""
+        occupation_sql = f"""
         SELECT
         (occupations_2021_data.{occupation} - occupations_2001_data_rezoned.{occupation}) / occupations_2001_data_rezoned.{occupation}
         FROM occupations_2001_data_rezoned JOIN occupations_2021_data ON occupations_2021_data.oa_2021 = occupations_2001_data_rezoned.oa_2021;"""
-      occupation_data = access.sql_select(conn, occupation_sql)
-      occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
-      response_vectors[occupation] = occupation_df["Change"]
+        occupation_data = access.sql_select(conn, occupation_sql)
+        occupation_df = pd.DataFrame(occupation_data, columns=["Change"])
+        response_vectors[occupation] = occupation_df["Change"]
     display_response_vector_histogram(response_vectors, min_value=-1, max_value=2)
