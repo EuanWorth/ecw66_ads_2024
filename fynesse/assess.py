@@ -250,7 +250,7 @@ def process_t2_sample(sample):
         size: normalised_df[[f"{size}_{column}" for column in access.column_list]]
         for size in size_table_name_map
     }
-    response_vectors = {occupation: normalised_df[f"{occupation}_change"]}
+    response_vectors = {occupation: normalised_df[f"{occupation}_change"] for occupation in access.occupations_list[1:]}
     return sized_dfs, response_vectors
 
 
